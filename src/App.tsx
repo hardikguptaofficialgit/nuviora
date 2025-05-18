@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import SmoothScroll from "./components/SmoothScroll";
 import { AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import LogoAnimation from "./components/LogoAnimation";
+
 import { AuthProvider } from "./contexts/AuthContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -22,24 +22,15 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [showIntro, setShowIntro] = useState(true);
+  const [showIntro, setShowIntro] = useState(false);
   const [appLoaded, setAppLoaded] = useState(false);
   
   useEffect(() => {
-    // check if the app has been loaded before in this session
-    const hasLoaded = sessionStorage.getItem('appLoaded');
-    if (hasLoaded) {
-      setShowIntro(false);
-      setAppLoaded(true);
-    }
+    // app loads immediately without intro animation
+    setAppLoaded(true);
   }, []);
   
-  const handleIntroComplete = () => {
-    setShowIntro(false);
-    // mark that the app has been loaded in this session
-    sessionStorage.setItem('appLoaded', 'true');
-    setAppLoaded(true);
-  };
+
   
   return (
     <QueryClientProvider client={queryClient}>
@@ -51,8 +42,7 @@ const App = () => {
               {/* watch background */}
               <WatchBackground />
               
-              {/* logo animation intro */}
-              {showIntro && <LogoAnimation onAnimationComplete={handleIntroComplete} />}
+
               
               {/* main app content */}
               <BrowserRouter>
