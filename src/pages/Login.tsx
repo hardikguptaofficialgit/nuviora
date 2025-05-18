@@ -18,7 +18,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { notify } = useNotificationContext();
   
-  // Redirect authenticated users to dashboard
+  // redirect authenticated users to dashboard
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/dashboard');

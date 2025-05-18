@@ -1,5 +1,5 @@
 
-// Custom notification system is used instead of toast
+// custom notification system is used instead of toast
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -26,7 +26,7 @@ const App = () => {
   const [appLoaded, setAppLoaded] = useState(false);
   
   useEffect(() => {
-    // Check if the app has been loaded before in this session
+    // check if the app has been loaded before in this session
     const hasLoaded = sessionStorage.getItem('appLoaded');
     if (hasLoaded) {
       setShowIntro(false);
@@ -36,7 +36,7 @@ const App = () => {
   
   const handleIntroComplete = () => {
     setShowIntro(false);
-    // Mark that the app has been loaded in this session
+    // mark that the app has been loaded in this session
     sessionStorage.setItem('appLoaded', 'true');
     setAppLoaded(true);
   };
@@ -44,34 +44,34 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        {/* Using custom notification system */}
+        {/* using custom notification system */}
         <ThemeProvider>
           <NotificationProvider>
             <AuthProvider>
-              {/* Watch Background */}
+              {/* watch background */}
               <WatchBackground />
               
-              {/* Logo Animation Intro */}
+              {/* logo animation intro */}
               {showIntro && <LogoAnimation onAnimationComplete={handleIntroComplete} />}
               
-              {/* Main App Content */}
+              {/* main app content */}
               <BrowserRouter>
                 <SmoothScroll>
                   <AnimatePresence mode="wait">
                     {appLoaded && (
                       <Routes>
-                        {/* Public Routes */}
+                        {/* public routes */}
                         <Route path="/" element={<Home />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/signup" element={<Signup />} />
                         <Route path="/pricing" element={<Pricing />} />
                         
-                        {/* Protected Routes */}
+                        {/* protected routes */}
                         <Route element={<ProtectedRoute />}>
                           <Route path="/dashboard" element={<Dashboard />} />
                         </Route>
                         
-                        {/* Catch-all route */}
+                        {/* catch-all route */}
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     )}

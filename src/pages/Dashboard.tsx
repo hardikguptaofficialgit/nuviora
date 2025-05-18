@@ -6,7 +6,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 
-// Import components
+// import components
 import CustomCursor from '@/components/CustomCursor';
 import PageLoadingAnimation from '@/components/PageLoadingAnimation';
 import MetricCard from '@/components/MetricCard';
@@ -20,7 +20,7 @@ import SleepQualityAnalysis from '@/components/SleepQualityAnalysis';
 import ChatBot from '@/components/ChatBot';
 import DietGenerator from '@/components/DietGenerator';
 
-// Import data utilities
+// import data utilities
 import {
   generateHeartRateData,
   generateStepData,
@@ -37,14 +37,14 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   
-  // Redirect to login if not authenticated
+  // redirect to login if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login');
     }
   }, [isAuthenticated, navigate]);
   
-  // State for health metrics
+  // state for health metrics
   const [healthMetrics, setHealthMetrics] = useState({
     heartRate: 0,
     steps: 0,
@@ -53,19 +53,19 @@ const Dashboard = () => {
     lastUpdated: ''
   });
   
-  // State for chart data
+  // state for chart data
   const [heartRateData, setHeartRateData] = useState<any[]>([]);
   const [stepsData, setStepsData] = useState<any[]>([]);
   const [combinedData, setCombinedData] = useState<any[]>([]);
   
-  // Chart visualization states
+  // chart visualization states
   const [activeChart, setActiveChart] = useState<'heartRate' | 'steps' | 'combined'>('heartRate');
   const [mood, setMood] = useState<Mood>('calm');
   const [autoSync, setAutoSync] = useState(true);
   const [showHealthcareRecommendations, setShowHealthcareRecommendations] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  // Load data from localStorage on initial render
+  // load data from localstorage on initial render
   useEffect(() => {
     const storedMetrics = localStorage.getItem('healthMetrics');
     const storedHeartRateData = localStorage.getItem('heartRateData');
@@ -85,7 +85,7 @@ const Dashboard = () => {
     if (storedActiveChart) setActiveChart(storedActiveChart);
   }, []);
   
-  // Save data to localStorage whenever it changes
+  // save data to localstorage whenever it changes
   useEffect(() => {
     if (healthMetrics.lastUpdated) {
       localStorage.setItem('healthMetrics', JSON.stringify(healthMetrics));
@@ -97,12 +97,12 @@ const Dashboard = () => {
     localStorage.setItem('activeChart', activeChart);
   }, [healthMetrics, heartRateData, stepsData, combinedData, activeChart]);
   
-  // Generate random health data
+  // generate random health data
   const generateData = useCallback(() => {
     const summary = getDailySummary();
     setHealthMetrics(summary);
     
-    // Generate chart data
+    // generate chart data
     const newHeartRateData = generateHeartRateData();
     const newStepsData = generateStepData();
     const newCombinedData = generateCombinedData();
@@ -112,7 +112,7 @@ const Dashboard = () => {
     setCombinedData(newCombinedData);
   }, []);
 
-  // Update steps in real-time
+  // update steps in real-time
   const updateStepsInRealTime = useCallback(() => {
     setHealthMetrics(prev => {
       const newSteps = prev.steps + Math.floor(Math.random() * 20) + 5;
@@ -123,12 +123,12 @@ const Dashboard = () => {
       };
     });
     
-    // Update steps data in charts
+    // update steps data in charts
     if (stepsData.length) {
       const updatedStepsData = incrementStepData(stepsData);
       setStepsData(updatedStepsData);
       
-      // Also update the combined data
+      // also update the combined data
       if (combinedData.length) {
         const updatedCombinedData = combinedData.map((item, index) => ({
           ...item,
@@ -139,7 +139,7 @@ const Dashboard = () => {
     }
   }, [stepsData, combinedData]);
   
-  // Auto-sync effect (every 5 seconds)
+  // auto-sync effect (every 5 seconds)
   useEffect(() => {
     let intervalId: number | null = null;
     
@@ -156,23 +156,23 @@ const Dashboard = () => {
     };
   }, [autoSync, updateStepsInRealTime]);
   
-  // Handle sync button click
+  // handle sync button click
   const handleSync = () => {
     generateData();
   };
   
-  // Handle mood analysis completion
+  // handle mood analysis completion
   const handleMoodAnalysis = (detectedMood: Mood) => {
     setMood(detectedMood);
     setShowHealthcareRecommendations(detectedMood === 'tired' || detectedMood === 'anxious');
   };
   
-  // Toggle auto-sync
+  // toggle auto-sync
   const toggleAutoSync = () => {
     setAutoSync(prev => !prev);
   };
   
-  // Get chart data based on active chart selection
+  // get chart data based on active chart selection
   const getActiveChartData = () => {
     switch (activeChart) {
       case 'heartRate':
@@ -216,22 +216,22 @@ const Dashboard = () => {
   
   return (
     <div className={`min-h-screen bg-background relative overflow-hidden ${theme === 'dark' ? 'dark' : ''}`}>
-      {/* Page Loading Animation */}
+      {/* page loading animation */}
       {isLoading && <PageLoadingAnimation onAnimationComplete={() => setIsLoading(false)} />}
       
-      {/* Background Elements */}
+      {/* background elements */}
       <div className="matrix-bg opacity-10" />
       <div className="scan-line z-10 hidden md:block opacity-30" />
       
-      {/* Custom Cursor */}
+      {/* custom cursor */}
       <CustomCursor />
       
-      {/* App Header */}
+      {/* app header */}
       <header className="sticky top-0 bg-black/80 backdrop-blur-md border-b border-neon-dim z-50 py-2 px-4 mb-4">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex-1"></div>
           
-          {/* Centered Logo */}
+          {/* centered logo */}
           <div className="flex justify-center items-center flex-1">
             <img 
               src="/nuviora-logo-dark.png" 
@@ -240,9 +240,9 @@ const Dashboard = () => {
             />
           </div>
           
-          {/* Logout Button Container */}
+          {/* logout button container */}
           <div className="flex justify-end flex-1">
-            {/* Mobile Controls */}
+            {/* mobile controls */}
             <div className="md:hidden flex items-center gap-2">
               <Button 
                 variant="outline" 
@@ -254,7 +254,7 @@ const Dashboard = () => {
               </Button>
             </div>
             
-            {/* Desktop Controls */}
+            {/* desktop controls */}
             <div className="hidden md:flex items-center gap-4">
               <Button 
                 variant="outline" 
@@ -270,7 +270,7 @@ const Dashboard = () => {
         </div>
       </header>
       
-      {/* Dashboard Section */}
+      {/* dashboard section */}
       <div className="relative z-20">
         <div className="h-full overflow-y-auto overflow-x-hidden">
            
@@ -285,10 +285,10 @@ const Dashboard = () => {
             
             <div className="grid grid-cols-1 gap-6 mb-6">
            
-            {/*loop here begins */}
+            {/* loop here begins */}
               <div className="w-full">
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-6">
-                  {/* Health Metric Cards */}
+                  {/* health metric cards */}
                   <MetricCard 
                     title="Heart Rate" 
                     value={healthMetrics.heartRate} 
@@ -353,7 +353,7 @@ const Dashboard = () => {
                         />
                       </div>
                       
-                      {/* Sleep Quality Analysis */}
+                      {/* sleep quality analysis */}
                       <div className="border-t border-neon-dim/30 pt-4">
                         <div className="flex items-center justify-between mb-4">
                           <h3 className="text-lg font-medium text-white">Sleep Analysis</h3>
@@ -386,7 +386,7 @@ const Dashboard = () => {
                   </div>
                 </div>
                 
-                {/* AI Diet Generator */}
+                {/* ai diet generator */}
                 <div className="mt-6">
                   <DietGenerator />
                 </div>

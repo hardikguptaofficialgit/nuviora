@@ -1,4 +1,4 @@
-// Diet Generator Service using ChefGPT API
+// diet generator service using chefgpt api
 
 interface DietPlan {
   meals: Meal[];
@@ -20,7 +20,7 @@ interface Meal {
   imageUrl?: string;
 }
 
-// API keys
+// api keys
 const CHEFGPT_API_KEY = '4e3494f1-066d-4337-a08e-ce3be7315042';
 const CHEFGPT_API_ENDPOINT = 'https://api.chefgpt.nutrition/v1/generate';
 
@@ -34,18 +34,18 @@ export async function generateDietPlan(
   }
 ): Promise<DietPlan> {
   try {
-    // In a production environment, this would be a real API call to ChefGPT
+    // in a production environment, this would be a real api call to chefgpt
     console.log('Generating diet plan with ChefGPT API key:', CHEFGPT_API_KEY);
     console.log('Using real food images for diet plans');
     
-    // Simulate API delay
+    // simulate api delay
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // Generate a realistic diet plan based on preferences
+    // generate a realistic diet plan based on preferences
     const dietPlan = generateMockDietPlan(preferences);
     
-    // In a real implementation, we would call the AI image generation service for each meal
-    // For now, we're using the dynamic URLs generated in the generateMeal function
+    // in a real implementation, we would call the ai image generation service for each meal
+    // for now, we're using the dynamic urls generated in the generatemeal function
     
     return dietPlan;
   } catch (error) {
@@ -54,11 +54,11 @@ export async function generateDietPlan(
   }
 }
 
-// Mock function to generate a realistic diet plan
+// mock function to generate a realistic diet plan
 function generateMockDietPlan(preferences: any): DietPlan {
   const { dietType, calorieTarget, goals } = preferences;
   
-  // Adjust macros based on diet type and goals
+  // adjust macros based on diet type and goals
   let proteinPercentage = 0.3;
   let carbsPercentage = 0.4;
   let fatPercentage = 0.3;
@@ -87,7 +87,7 @@ function generateMockDietPlan(preferences: any): DietPlan {
     fatPercentage += 0.05;
   }
   
-  // Calculate macros in grams
+  // calculate macros in grams
   const totalCalories = calorieTarget;
   const proteinCalories = totalCalories * proteinPercentage;
   const carbsCalories = totalCalories * carbsPercentage;
@@ -97,7 +97,7 @@ function generateMockDietPlan(preferences: any): DietPlan {
   const carbsGrams = Math.round(carbsCalories / 4);
   const fatGrams = Math.round(fatCalories / 9);
   
-  // Generate meals
+  // generate meals
   const breakfast = generateMeal('breakfast', dietType, totalCalories * 0.25, preferences);
   const lunch = generateMeal('lunch', dietType, totalCalories * 0.35, preferences);
   const dinner = generateMeal('dinner', dietType, totalCalories * 0.3, preferences);
@@ -114,9 +114,9 @@ function generateMockDietPlan(preferences: any): DietPlan {
 
 
 
-// Get a real food image based on meal name
+// get a real food image based on meal name
 function getFoodImage(mealName: string): string {
-  // Map meal names to specific high-quality food images
+  // map meal names to specific high-quality food images
   const mealImageMap: Record<string, string> = {
     // Breakfast
     'Greek Yogurt Parfait': 'https://images.unsplash.com/photo-1488477181946-6428a0291777?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
@@ -139,16 +139,16 @@ function getFoodImage(mealName: string): string {
     'Protein Energy Balls': 'https://images.unsplash.com/photo-1490567674331-7fc3e9f3e021?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80'
   };
   
-  // Return the specific image for this meal if available
+  // return the specific image for this meal if available
   if (mealImageMap[mealName]) {
     return mealImageMap[mealName];
   }
   
-  // If no specific image is mapped, create a deterministic but varied image URL
+  // if no specific image is mapped, create a deterministic but varied image url
   const hash = mealName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const imageId = hash % 30 + 1; // Get a number between 1-30
   
-  // Use Unsplash with specific search terms based on meal type
+  // use unsplash with specific search terms based on meal type
   let searchTerm = '';
   
   if (mealName.toLowerCase().includes('smoothie') || mealName.toLowerCase().includes('bowl')) {
@@ -176,7 +176,7 @@ function getFoodImage(mealName: string): string {
   return `https://source.unsplash.com/featured/512x512/?${encodeURIComponent(searchTerm)}&sig=${imageId}`;
 }
 
-// Generate a realistic meal based on type and preferences
+// generate a realistic meal based on type and preferences
 function generateMeal(
   type: 'breakfast' | 'lunch' | 'dinner' | 'snack',
   dietType: string,
@@ -190,7 +190,7 @@ function generateMeal(
   const carbs = Math.round((calories * 0.4) / 4);
   const fat = Math.round((calories * 0.3) / 9);
   
-  // Define meal options based on type and diet
+  // define meal options based on type and diet
   const mealOptions: Record<string, any[]> = {
     breakfast: [
       {
@@ -308,11 +308,11 @@ function generateMeal(
     fat,
     ingredients: selectedMeal.ingredients,
     instructions: selectedMeal.instructions,
-    imageUrl: imageUrl // Use dynamically generated image URL
+    imageUrl: imageUrl // use dynamically generated image url
   };
 }
 
-// Function to get diet types
+// function to get diet types
 export function getDietTypes() {
   return [
     { id: 'balanced', name: 'Balanced' },
@@ -326,7 +326,7 @@ export function getDietTypes() {
   ];
 }
 
-// Function to get common health goals
+// function to get common health goals
 export function getHealthGoals() {
   return [
     { id: 'weight-loss', name: 'Weight Loss' },
@@ -339,7 +339,7 @@ export function getHealthGoals() {
   ];
 }
 
-// Function to get common allergies
+// function to get common allergies
 export function getAllergies() {
   return [
     { id: 'dairy', name: 'Dairy' },

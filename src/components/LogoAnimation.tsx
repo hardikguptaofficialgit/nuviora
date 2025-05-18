@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useState, useRef } from 'react';
+import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
 
 interface LogoAnimationProps {
   onAnimationComplete?: () => void;
@@ -7,173 +7,130 @@ interface LogoAnimationProps {
 
 const LogoAnimation: React.FC<LogoAnimationProps> = ({ onAnimationComplete }) => {
   const [animationStep, setAnimationStep] = useState(0);
+  const logoControls = useAnimationControls();
+  const textControls = useAnimationControls();
+  const svgRef = useRef<SVGSVGElement>(null);
   
   useEffect(() => {
-    // Progress through animation steps
-    if (animationStep < 3) {
-      const timer = setTimeout(() => {
-        setAnimationStep(prev => prev + 1);
-      }, animationStep === 0 ? 800 : 600);
+    // sequence the logo animation
+    const animateSequence = async () => {
+      // initial logo morphing appearance
+      await logoControls.start({
+        scale: [0, 1],
+        opacity: [0, 1],
+        transition: { 
+          duration: 1.5, 
+          ease: [0.34, 1.56, 0.64, 1], // Custom spring-like bounce
+          opacity: { duration: 0.8 }
+        }
+      });
       
-      return () => clearTimeout(timer);
-    } else if (animationStep === 3 && onAnimationComplete) {
-      const timer = setTimeout(() => {
-        onAnimationComplete();
-      }, 500);
+      // text reveal with staggered characters
+      await textControls.start({
+        opacity: 1,
+        transition: { duration: 0.6 }
+      });
       
-      return () => clearTimeout(timer);
-    }
-  }, [animationStep, onAnimationComplete]);
+      // progress through loading steps
+      for (let i = 0; i < 3; i++) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setAnimationStep(i + 1);
+      }
+      
+      // complete animation
+      if (onAnimationComplete) {
+        setTimeout(onAnimationComplete, 400);
+      }
+    };
+    
+    animateSequence();
+  }, [logoControls, textControls, onAnimationComplete]);
+
+  // text animation variants for staggered character animation
+  const textVariants = {
+    hidden: { opacity: 0 },
+    visible: (i: number) => ({
+      opacity: 1,
+      transition: {
+        delay: i * 0.05,
+      },
+    }),
+  };
   
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black">
-        {/* Background wave animation */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(5)].map((_, i) => (
-            <motion.div
-              key={`wave-${i}`}
-              className="absolute bottom-0 left-0 right-0 h-[20vh] bg-neon-dim"
-              initial={{ y: '100%', opacity: 0 }}
-              animate={{ 
-                y: ['100%', '0%', '-100%'],
-                opacity: [0, 0.2, 0],
-                scaleY: [1, 1.5, 1]
-              }}
-              transition={{
-                duration: 3,
-                delay: i * 0.2,
-                ease: "easeInOut",
-                repeat: Infinity,
-                repeatType: "loop"
-              }}
-              style={{
-                borderRadius: "50% 50% 0 0",
-                height: `${(i + 1) * 10}vh`,
-                filter: "blur(10px)"
-              }}
-            />
-          ))}
-        </div>
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gradient-to-b from-slate-950 to-gray-900">
+        {/* removed particle background */}
         
-        {/* Logo animation */}
-        <div className="relative z-10">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="flex flex-col items-center"
-          >
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <motion.img 
-                src="/nuviora-logo-dark.png" 
-                alt="NuviOra Logo"
-                className="h-24 md:h-32"
-                initial={{ rotateY: 90 }}
-                animate={{ rotateY: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-              />
-            </motion.div>
-            
-            <motion.div
-              className="mt-6 text-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
-            >
-              <motion.h1 
-                className="text-3xl md:text-4xl font-bold neon-text tracking-tighter"
-                initial={{ letterSpacing: '0.5em' }}
-                animate={{ letterSpacing: '0.05em' }}
-                transition={{ duration: 1.2, delay: 1 }}
-              >
-                NUVIORA
-              </motion.h1>
-              
-              <motion.div
-                className="mt-2 overflow-hidden h-6"
-                initial={{ width: 0 }}
-                animate={{ width: '100%' }}
-                transition={{ duration: 0.8, delay: 1.4 }}
-              >
-                <motion.p 
-                  className="text-sm md:text-md opacity-80"
-                  initial={{ y: 20 }}
-                  animate={{ y: 0 }}
-                  transition={{ duration: 0.4, delay: 1.6 }}
-                >
-                  Advanced Biometric Monitoring
-                </motion.p>
-              </motion.div>
-            </motion.div>
-          </motion.div>
-          
-          {/* Pulse ring animation */}
-          {[...Array(3)].map((_, i) => (
-            <motion.div
-              key={`pulse-${i}`}
-              className="absolute inset-0 rounded-full border border-neon"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ 
-                scale: [1, 1.5, 2],
-                opacity: [0.6, 0.2, 0]
-              }}
-              transition={{
-                duration: 2,
-                delay: i * 0.4,
-                ease: "easeOut",
-                repeat: Infinity,
-                repeatType: "loop"
-              }}
-            />
-          ))}
-          
-          {/* Scan line animation */}
-          <motion.div
-            className="absolute left-0 right-0 h-[2px] bg-neon"
-            initial={{ y: -100, opacity: 0 }}
-            animate={{ 
-              y: [-100, 100],
-              opacity: [0, 1, 0]
-            }}
-            transition={{
-              duration: 1.5,
-              repeat: Infinity,
-              repeatType: "loop"
-            }}
-          />
-        </div>
-        
-        {/* Loading progress indicator */}
-        <motion.div 
-          className="absolute bottom-10 left-0 right-0 flex justify-center"
+        {/* main container with minimal design */}
+        <motion.div
+          className="relative z-10 flex flex-col items-center justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1.8, duration: 0.5 }}
+          transition={{ duration: 0.8 }}
         >
-          <div className="flex space-x-2">
-            {[...Array(4)].map((_, i) => (
-              <motion.div
-                key={`dot-${i}`}
-                className={`w-2 h-2 rounded-full ${i <= animationStep ? 'bg-neon' : 'bg-neon-dim'}`}
-                initial={{ scale: 0.5, opacity: 0.5 }}
+          {/* logo with morphing animation */}
+          <motion.div
+            className="relative"
+            animate={logoControls}
+            initial={{ scale: 0, opacity: 0 }}
+          >
+            {/* minimalist geometric logo shape */}
+            <svg 
+             
+            >
+              {/* no outer ring - removed cylinder-like container */}
+              
+              {/* simple logo shape */}
+              <motion.path
+                d="M30 30L70 30L70 70L30 70L30 30Z" 
+                fill="url(#logoGradient)"
+                initial={{ pathLength: 0, opacity: 0 }}
                 animate={{ 
-                  scale: i === animationStep ? [0.8, 1.2, 0.8] : 0.8,
-                  opacity: i <= animationStep ? 1 : 0.5
+                  pathLength: 1,
+                  opacity: [0, 1]
                 }}
-                transition={{
-                  duration: 0.6,
-                  repeat: i === animationStep ? Infinity : 0,
-                  repeatType: "reverse"
+                transition={{ 
+                  duration: 1.5,
+                  ease: "easeInOut"
                 }}
+                style={{ filter: "drop-shadow(0 0 8px rgba(59, 130, 246, 0.4))" }}
               />
-            ))}
-          </div>
+              
+              {/* gradient definition */}
+              <defs>
+                <linearGradient id="logoGradient" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#3b82f6" />
+                  <stop offset="100%" stopColor="#06b6d4" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </motion.div>
+          
+          {/* loading text */}
+          <motion.div 
+            className="mt-6 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8, duration: 0.5 }}
+          >
+            <motion.p 
+              className="text-blue-400 text-sm font-light tracking-wider"
+              animate={{ 
+                opacity: [0.5, 1, 0.5]
+              }}
+              transition={{ 
+                duration: 1.5,
+                repeat: Infinity,
+                repeatType: "loop"
+              }}
+            >
+              Loading...
+            </motion.p>
+          </motion.div>
         </motion.div>
+        
+       
       </div>
     </AnimatePresence>
   );

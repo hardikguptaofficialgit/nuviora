@@ -5,7 +5,7 @@ import { Heart, Activity, Clock, Zap, BarChart, Shield, Brain, Smartphone, Chevr
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 
-// Import components
+// import components
 import CustomCursor from '@/components/CustomCursor';
 import MetricCard from '@/components/MetricCard';
 import SyncButton from '@/components/SyncButton';
@@ -16,7 +16,7 @@ import SupplementsBooking from '@/components/SupplementsBooking';
 import WatchStatus from '@/components/WatchStatus';
 import WatchConnection from '@/components/WatchConnection';
 
-// Import data utilities
+// import data utilities
 import {
   generateHeartRateData,
   generateStepData,
@@ -28,9 +28,9 @@ import {
 type Mood = 'energized' | 'tired' | 'calm' | 'anxious' | 'focused';
 
 const Index = () => {
-  // Get user information from auth context
+  // get user information from auth context
   const { user } = useAuth();
-  // State for health metrics
+  // state for health metrics
   const [healthMetrics, setHealthMetrics] = useState({
     heartRate: 0,
     steps: 0,
@@ -39,12 +39,12 @@ const Index = () => {
     lastUpdated: ''
   });
   
-  // State for chart data
+  // state for chart data
   const [heartRateData, setHeartRateData] = useState<any[]>([]);
   const [stepsData, setStepsData] = useState<any[]>([]);
   const [combinedData, setCombinedData] = useState<any[]>([]);
   
-  // Chart visualization states
+  // chart visualization states
   const [activeChart, setActiveChart] = useState<'heartRate' | 'steps' | 'combined'>('heartRate');
   const [mood, setMood] = useState<Mood>('calm');
   const [autoSync, setAutoSync] = useState(true);

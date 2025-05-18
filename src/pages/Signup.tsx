@@ -20,7 +20,7 @@ const Signup = () => {
   const navigate = useNavigate();
   const { notify } = useNotificationContext();
   
-  // Redirect authenticated users to dashboard
+  // redirect authenticated users to dashboard
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/dashboard');
@@ -30,7 +30,7 @@ const Signup = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Form validation
+    // form validation
     if (!name || !email || !password || !confirmPassword) {
       notify.error("Error", "Please fill in all fields");
       return;

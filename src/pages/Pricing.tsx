@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Check, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Check, X, ChevronDown, ChevronUp, Menu, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import Footer from '@/components/Footer';
-import Navigation from '@/components/Navigation';
 import PageLoadingAnimation from '@/components/PageLoadingAnimation';
 import CustomCursor from '@/components/CustomCursor';
 
 const Pricing = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const toggleFaq = (index: number) => {
     setExpandedFaq(expandedFaq === index ? null : index);
@@ -39,16 +40,165 @@ const Pricing = () => {
 
   return (
     <div className="min-h-screen relative overflow-x-hidden flex flex-col">
-      {/* Page Loading Animation */}
+      {/* page loading animation */}
       {isLoading && <PageLoadingAnimation onAnimationComplete={() => setIsLoading(false)} />}
       
-      {/* Background Elements */}
+      {/* background elements */}
       <div className="matrix-bg" />
       <div className="scan-line z-10 pointer-events-none" />
       <CustomCursor />
       
-      {/* Navigation */}
-      <Navigation />
+      {/* app header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-neon-dim py-2 px-4">
+        <div className="container mx-auto flex items-center justify-between relative">
+          {/* left side - mobile menu button or empty space */}
+          <div className="w-24 flex items-center">
+            <button 
+              className="md:hidden text-neon"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle mobile menu"
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+          
+          {/* centered logo */}
+          <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center">
+            <img 
+              src="/nuviora-logo-dark.png" 
+              alt="NuviOra Logo" 
+              className="h-10 md:h-12" 
+            />
+          </div>
+          
+          {/* right side - desktop navigation */}
+          <div className="hidden md:flex items-center space-x-4 justify-end w-24">
+            <Link to="/">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="border-neon-dim hover:bg-neon-dim/20"
+              >
+                Home
+              </Button>
+            </Link>
+            
+            {isAuthenticated ? (
+              <>
+                <Link to="/dashboard">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="border-neon-dim hover:bg-neon-dim/20"
+                  >
+                    Dashboard
+                  </Button>
+                </Link>
+                
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="border-neon-dim hover:bg-neon-dim/20"
+                  onClick={() => {
+                    logout();
+                    navigate('/login');
+                  }}
+                >
+                  <LogOut size={16} className="mr-2" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="border-neon-dim hover:bg-neon-dim/20"
+                  >
+                    Login
+                  </Button>
+                </Link>
+                <Link to="/signup">
+                  <Button 
+                    size="sm" 
+                    className="bg-neon text-black hover:bg-neon/80"
+                  >
+                    Sign Up
+                  </Button>
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+        
+        {/* Mobile Navigation Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden py-4 space-y-3 animate-fade-in bg-black/95 backdrop-blur-md border-t border-neon-dim/30 mt-2">
+            <Link 
+              to="/" 
+              className="block py-2 px-4 hover:bg-neon-dim/20 rounded transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Home
+            </Link>
+            
+            {isAuthenticated ? (
+              <>
+                <Link 
+                  to="/dashboard" 
+                  className="block py-2 px-4 hover:bg-neon-dim/20 rounded transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Dashboard
+                </Link>
+                
+                <div className="pt-3 border-t border-neon-dim/30 px-4">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full border-neon-dim hover:bg-neon-dim/20"
+                    onClick={() => {
+                      logout();
+                      navigate('/login');
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <LogOut size={16} className="mr-2" />
+                    Logout
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="pt-3 border-t border-neon-dim/30 px-4 flex flex-col space-y-3">
+                <Link 
+                  to="/login" 
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full border-neon-dim hover:bg-neon-dim/20"
+                  >
+                    Login
+                  </Button>
+                </Link>
+                <Link 
+                  to="/signup" 
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Button 
+                    size="sm" 
+                    className="w-full bg-neon text-black hover:bg-neon/80"
+                  >
+                    Sign Up
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+      </header>
       
       {/* Pricing Hero Section */}
       <motion.div 

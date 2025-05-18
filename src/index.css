@@ -39,7 +39,7 @@
     --neon-dim: rgba(190, 234, 158, 0.2);
   }
   
-  /* Light theme styles removed */
+  /* light theme styles removed */
   
   * {
     @apply border-border;
@@ -66,7 +66,7 @@
     position: relative;
   }
   
-  /* White dots background */
+  /* white dots background */
   body::before {
     content: '';
     position: fixed;
@@ -86,9 +86,9 @@
     --dots-bg-pattern: url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='1' fill='white'/%3E%3C/svg%3E");
   }
   
-  /* Light theme dots pattern removed */
+  /* light theme dots pattern removed */
   
-  /* Hide scrollbar for Chrome, Safari and Opera */
+  /* hide scrollbar for chrome, safari and opera */
   html::-webkit-scrollbar,
   body::-webkit-scrollbar {
     display: none;
@@ -96,29 +96,29 @@
     height: 0;
   }
   
-  /* Hide scrollbars for all scrollable elements */
+  /* hide scrollbars for all scrollable elements */
   * {
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE and Edge */
   }
   
-  /* Hide scrollbar for Chrome, Safari and Opera for all elements */
+  /* hide scrollbar for chrome, safari and opera for all elements */
   *::-webkit-scrollbar {
     display: none;
     width: 0;
     height: 0;
   }
   
-  /* Light theme color overrides removed */
+  /* light theme color overrides removed */
 
-  /* Always use custom cursor */
+  /* always use custom cursor */
   @media (max-width: 768px) {
     html, body {
       cursor: none !important;
     }
   }
 
-  /* Add futuristic font */
+  /* add futuristic font */
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&display=swap');
 }
 
@@ -134,7 +134,7 @@
     backdrop-filter: blur(8px);
   }
   
-  /* Light theme biometric card styles removed */
+  /* light theme biometric card styles removed */
   
   .neon-text {
     @apply text-neon;
@@ -175,7 +175,7 @@
       linear-gradient(to bottom, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
   }
   
-  /* Floating watch animation for background */
+  /* floating watch animation for background */
   .watch-bg {
     position: fixed;
     top: 0;
@@ -237,7 +237,7 @@
     }
   }
 
-  /* Hero section styles */
+  /* hero section styles */
   .hero-section {
     @apply min-h-screen flex flex-col justify-center items-center relative py-16;
   }
@@ -405,7 +405,7 @@
     animation: watch-pulse 4s infinite alternate, watch-rotate 30s linear infinite;
   }
   
-  /* Wrist shadow effect */
+  /* wrist shadow effect */
   .watch-device::after {
     content: '';
     position: absolute;
@@ -446,7 +446,7 @@
     @apply absolute inset-0 flex flex-col justify-center items-center p-6;
   }
 
-  /* New Battery Status Styles */
+  /* new battery status styles */
   .battery-indicator {
     @apply flex items-center space-x-1 text-xs opacity-70 mt-2;
   }
@@ -460,7 +460,7 @@
     @apply h-full bg-neon transition-all;
   }
 
-  /* New animations */
+  /* new animations */
   @keyframes scan-line {
     0% { 
       transform: translateY(-100%);
@@ -516,7 +516,7 @@
     }
   }
   
-  /* Watch animations */
+  /* watch animations */
   @keyframes watch-pulse {
     0% {
       box-shadow: 0 0 15px rgba(190, 234, 158, 0.3);
@@ -817,7 +817,7 @@
     justify-content: center;
   }
 
-  /* Particle animation */
+  /* particle animation */
   .particle {
     position: absolute;
     width: 3px;
@@ -846,7 +846,7 @@
     }
   }
   
-  /* Glow effect for buttons */
+  /* glow effect for buttons */
   .glow-effect {
     position: relative;
     overflow: hidden;
@@ -870,7 +870,7 @@
     opacity: 1;
   }
   
-  /* Responsive improvements */
+  /* responsive improvements */
   @media (max-width: 640px) {
     .container {
       @apply px-3 py-4;
@@ -907,12 +907,12 @@
     
  
     
-    /* Make metric cards more compact on mobile */
+    /* make metric cards more compact on mobile */
     .grid {
       gap: 0.75rem;
     }
     
-    /* Fix scrollbar flashing */
+    /* fix scrollbar flashing */
     ::-webkit-scrollbar {
       width: 0px;
       background: transparent;
@@ -920,7 +920,7 @@
   }
 }
 
-/* Google Translate Overrides - Hide all Google elements */
+/* google translate overrides - hide all google elements */
 .goog-te-banner-frame,
 .skiptranslate,
 #goog-gt-tt,
@@ -941,7 +941,7 @@ body {
   position: static !important;
 }
 
-/* Modern Language Selector Styles */
+/* modern language selector styles */
 .language-selector-wrapper {
   position: relative;
   z-index: 100;
@@ -985,10 +985,10 @@ body {
   border-radius: 0.5rem;
   overflow: hidden;
   min-width: 160px;
-  box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.5); /* Changed shadow direction */
+  box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.5); /* changed shadow direction */
   z-index: 1000;
-  max-height: 300px; /* Added max height to prevent too large dropdown */
-  overflow-y: auto; /* Added scrolling for many languages */
+  max-height: 300px; /* added max height to prevent too large dropdown */
+  overflow-y: auto; /* added scrolling for many languages */
 }
 
 .language-option {
