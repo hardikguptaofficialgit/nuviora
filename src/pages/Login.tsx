@@ -9,8 +9,8 @@ import { Eye, EyeOff, LogIn, ArrowRight, ChevronLeft } from 'lucide-react';
 import CustomCursor from '@/components/CustomCursor';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('hardikgupta8792@gmail.com');
+  const [password, setPassword] = useState('hardik8@1');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

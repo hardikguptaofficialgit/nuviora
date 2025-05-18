@@ -1,267 +1,459 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, Send, X, Minimize2, Maximize2, Zap, Bot, Sparkles } from 'lucide-react';
-import Draggable from 'react-draggable';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { chatService } from '@/services/chatService';
-
-// Define message types
-interface Message {
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  timestamp: Date;
-}
-
-// Use the chat service to get responses
-const fetchChatResponse = async (messages: Message[]): Promise<string> => {
-  // Convert our Message type to the ChatMessage type expected by the service
-  const chatMessages = messages.map(({ role, content }) => ({
-    role,
-    content
-  }));
-  
-  return chatService.getChatResponse(chatMessages);
-};
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { X, Minimize2, Maximize2, Send, Bot, Sparkles, ChevronUp, Moon, RotateCcw, Zap, MessageSquare, Brain } from 'lucide-react';
+import { githubModelService, ChatMessage } from '@/services/githubModelService';
+import './ChatBot.css';
 
 const ChatBot: React.FC = () => {
-  // Always visible, but can be minimized
-  const [isOpen, setIsOpen] = useState(true);
-  const [isMinimized, setIsMinimized] = useState(true); // Start minimized
+  // State management
+  const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'system',
-      content: 'Welcome to NuviOra Health Assistant. How can I help you today?',
-      timestamp: new Date()
-    }
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { role: 'assistant', content: 'Hi there! I\'m your NuviOra health assistant. How can I help with your wellness journey today?' }
   ]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const MAX_MESSAGES = 50; // Maximum number of messages to keep in history
+  const [inputValue, setInputValue] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingText, setTypingText] = useState('');
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  
+  // Refs
+  const chatbotRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const dragStartRef = useRef<{x: number, y: number} | null>(null);
   
-  // Scroll to bottom of messages
+  // Enhanced auto-scroll to bottom of messages when new message is added
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current && isOpen) {
+      // Use a small timeout to ensure DOM has updated
+      const scrollTimeout = setTimeout(() => {
+        const messagesContainer = document.querySelector('.chatbot-messages');
+        const isScrolledToBottom = messagesContainer ? 
+          messagesContainer.scrollHeight - messagesContainer.clientHeight <= messagesContainer.scrollTop + 100 : true;
+        
+        // Only auto-scroll if already near the bottom or it's a new message
+        if (isScrolledToBottom || messages.length > 0) {
+          messagesEndRef.current?.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'end'
+          });
+        }
+      }, 100);
+      
+      return () => clearTimeout(scrollTimeout);
     }
-  }, [messages]);
+  }, [messages, typingText, isOpen]);
   
-  const handleSendMessage = async () => {
-    if (!input.trim()) return;
-    
-    // Add user message
-    const userMessage: Message = {
-      role: 'user',
-      content: input,
-      timestamp: new Date()
+  // Focus input when chat is opened
+  useEffect(() => {
+    if (isOpen && !isMinimized) {
+      setTimeout(() => inputRef.current?.focus(), 300);
+    }
+  }, [isOpen, isMinimized]);
+  
+  // Handle clicks outside the chatbot to auto-close
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isOpen && chatbotRef.current && !chatbotRef.current.contains(event.target as Node)) {
+        // Don't close if clicking on the toggle button
+        const toggleButton = document.querySelector('.chatbot-toggle');
+        if (toggleButton && toggleButton.contains(event.target as Node)) {
+          return;
+        }
+        
+        // Only close if not dragging
+        if (!isDragging) {
+          // Close the chatbot completely instead of minimizing
+          setIsOpen(false);
+        }
+      }
     };
     
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
-    setIsLoading(true);
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside); // Add touch support
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isOpen, isDragging]);
+  
+  // Clean up any timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
+  
+  // Drag functionality
+  const handleDragStart = useCallback((e: React.MouseEvent) => {
+    if (e.target instanceof HTMLElement && e.target.closest('.chatbot-header')) {
+      e.preventDefault();
+      setIsDragging(true);
+      dragStartRef.current = {
+        x: e.clientX - position.x,
+        y: e.clientY - position.y
+      };
+    }
+  }, [position]);
+  
+  const handleDragMove = useCallback((e: MouseEvent) => {
+    if (isDragging && dragStartRef.current) {
+      const newX = e.clientX - dragStartRef.current.x;
+      const newY = e.clientY - dragStartRef.current.y;
+      
+      // Ensure the chatbot stays within viewport bounds
+      const chatbotWidth = chatbotRef.current?.offsetWidth || 380;
+      const chatbotHeight = chatbotRef.current?.offsetHeight || 550;
+      
+      const maxX = window.innerWidth - chatbotWidth;
+      const maxY = window.innerHeight - chatbotHeight;
+      
+      setPosition({
+        x: Math.max(0, Math.min(newX, maxX)),
+        y: Math.max(0, Math.min(newY, maxY))
+      });
+    }
+  }, [isDragging]);
+  
+  const handleDragEnd = useCallback(() => {
+    setIsDragging(false);
+    dragStartRef.current = null;
+  }, []);
+  
+  // Set up drag event listeners
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleDragMove);
+      document.addEventListener('mouseup', handleDragEnd);
+    } else {
+      document.removeEventListener('mousemove', handleDragMove);
+      document.removeEventListener('mouseup', handleDragEnd);
+    }
+    
+    return () => {
+      document.removeEventListener('mousemove', handleDragMove);
+      document.removeEventListener('mouseup', handleDragEnd);
+    };
+  }, [isDragging, handleDragMove, handleDragEnd]);
+  
+  // Enhanced typing effect for assistant messages with word-by-word animation
+  const simulateTyping = useCallback((text: string) => {
+    // Clear any existing typing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    setIsTyping(true);
+    setTypingText('');
+    
+    // Split text into words and punctuation for more natural typing
+    const words = text.match(/[\w']+|[.,!?;:]|\s+/g) || [];
+    
+    // Calculate a dynamic typing speed based on text length
+    const baseWordDelay = 100; // base delay between words in ms
+    const minWordDelay = 40; // minimum delay between words for long responses
+    const maxWordDelay = 200; // maximum delay between words for short responses
+    
+    // Adjust word delay based on text length - shorter texts get longer delays for more dramatic effect
+    const wordDelay = Math.max(minWordDelay, Math.min(maxWordDelay, baseWordDelay * (1000 / text.length)));
+    
+    let currentIndex = 0;
+    let currentText = '';
+    
+    const typeNextWord = () => {
+      if (currentIndex < words.length) {
+        const word = words[currentIndex];
+        currentText += word;
+        setTypingText(currentText);
+        currentIndex++;
+        
+        // Calculate delay for next word based on various factors
+        let delay = wordDelay;
+        
+        // Add extra delay after punctuation
+        const endsWithPunctuation = /[.!?]$/.test(currentText.trim());
+        const hasComma = /,$/.test(currentText.trim());
+        
+        // Longer pauses at the end of sentences
+        if (endsWithPunctuation) {
+          delay *= 2.5;
+        } 
+        // Slight pause after commas
+        else if (hasComma) {
+          delay *= 1.5;
+        }
+        
+        // Add some randomness to make it feel more human
+        const randomFactor = 0.7 + (Math.random() * 0.6); // 0.7 to 1.3 multiplier
+        delay *= randomFactor;
+        
+        // Slightly longer pause before starting a new sentence
+        const nextWordStartsSentence = currentIndex < words.length && /^[A-Z]/.test(words[currentIndex]) && endsWithPunctuation;
+        if (nextWordStartsSentence) {
+          delay *= 1.3;
+        }
+        
+        // Schedule next word
+        typingTimeoutRef.current = setTimeout(typeNextWord, delay);
+      } else {
+        // Typing complete - add a small delay before finalizing
+        setTimeout(() => {
+          setIsTyping(false);
+          // Add the message to the chat history, limiting to MAX_MESSAGES
+          setMessages(prev => {
+            const newMessages = [...prev, { role: 'assistant' as const, content: text }];
+            // If we exceed the max, trim the oldest messages (but keep the first welcome message)
+            return newMessages.length > MAX_MESSAGES ? 
+              [newMessages[0], ...newMessages.slice(-(MAX_MESSAGES-1))] : 
+              newMessages;
+          });
+          setTypingText('');
+        }, 300);
+      }
+    };
+    
+    // Start typing with an initial thinking delay
+    const thinkingDelay = Math.min(1000, 300 + text.length / 10);
+    typingTimeoutRef.current = setTimeout(typeNextWord, thinkingDelay);
+  }, []);
+  
+  // Handle sending a message
+  const handleSendMessage = useCallback(async () => {
+    if (!inputValue.trim()) return;
+    
+    // Add user message with message limit
+    const userMessage: ChatMessage = { role: 'user', content: inputValue.trim() };
+    setMessages(prev => {
+      const newMessages = [...prev, userMessage];
+      // If we exceed the max, trim the oldest messages (but keep the first welcome message)
+      return newMessages.length > MAX_MESSAGES ? 
+        [newMessages[0], ...newMessages.slice(-(MAX_MESSAGES-1))] : 
+        newMessages;
+    });
+    
+    // Clear input
+    setInputValue('');
     
     try {
-      // Get response from AI
-      const response = await fetchChatResponse([...messages, userMessage]);
+      // Start typing animation with a loading indicator
+      setIsTyping(true);
       
-      // Add assistant message
-      const assistantMessage: Message = {
-        role: 'assistant',
-        content: response,
-        timestamp: new Date()
-      };
+      // System prompt for the health assistant
+      const systemPrompt = "You are NuviOra's health and wellness AI assistant. Provide helpful, concise advice about health, fitness, nutrition, sleep, and mental wellbeing. Be friendly, supportive, and empathetic. Keep responses brief (under 150 words) and focused on actionable advice. Avoid medical diagnoses or prescriptions.";
       
-      setMessages(prev => [...prev, assistantMessage]);
+      // Get response from GitHub model
+      const response = await githubModelService.getChatCompletion(
+        [...messages, userMessage],
+        systemPrompt
+      );
+      
+      // Process the response to prevent repetitive introductions
+      let processedResponse = response;
+      
+      // Remove common introduction patterns if they exist
+      const introPatterns = [
+        /^(Hello|Hi|Hey|Greetings).*?\s/i,
+        /^(I'm|I am)\s+(your|the)\s+(NuviOra|health|wellness|assistant).*?\s/i,
+        /^As\s+(your|the)\s+(NuviOra|health|wellness|assistant).*?\s/i
+      ];
+      
+      for (const pattern of introPatterns) {
+        if (pattern.test(processedResponse)) {
+          processedResponse = processedResponse.replace(pattern, '');
+          // Capitalize first letter if needed
+          processedResponse = processedResponse.charAt(0).toUpperCase() + processedResponse.slice(1);
+          break;
+        }
+      }
+      
+      // Simulate typing effect with the processed response
+      simulateTyping(processedResponse);
+      
     } catch (error) {
-      console.error('Error fetching chat response:', error);
-      
-      // Add error message
-      const errorMessage: Message = {
-        role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again later.',
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
+      console.error('Error getting response:', error);
+      setIsTyping(false);
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: 'Sorry, I encountered an error processing your request. Please try again in a moment.' 
+      }]);
     }
-  };
+  }, [inputValue, messages, simulateTyping]);
   
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  // Handle input key press (Enter to send)
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
-  };
+  }, [handleSendMessage]);
   
-  const toggleChat = () => {
-    if (isMinimized) setIsMinimized(false);
-  };
+  // Toggle chatbot open/closed
+  const toggleChatbot = useCallback(() => {
+    if (isOpen && isMinimized) {
+      // If it's open but minimized, just maximize it
+      setIsMinimized(false);
+    } else {
+      // Otherwise toggle open/closed state
+      setIsOpen(prev => !prev);
+      if (isMinimized) {
+        setIsMinimized(false);
+      }
+    }
+  }, [isOpen, isMinimized]);
   
-  const toggleMinimize = () => {
+  // Toggle minimize/maximize
+  const toggleMinimize = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
     setIsMinimized(prev => !prev);
+  }, []);
+  
+  // Clear chat history
+  const clearChat = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMessages([
+      { role: 'assistant', content: 'Chat history cleared. How can I help you today?' }
+    ]);
+  }, []);
+  
+  // Auto-resize textarea as user types
+  const handleTextareaInput = useCallback((e: React.FormEvent<HTMLTextAreaElement>) => {
+    const textarea = e.currentTarget;
+    // Reset height to auto to get the correct scrollHeight
+    textarea.style.height = 'auto';
+    // Set the height to scrollHeight to fit content
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
+  }, []);
+  
+  // Calculate style for the chatbot container based on position and dragging state
+  const chatbotStyle = {
+    transform: `translate(${position.x}px, ${position.y}px)`,
+    cursor: isDragging ? 'grabbing' : 'default',
+    transition: isDragging ? 'none' : 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
   };
   
-  // Format timestamp
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-  
-  const handleDragStop = (e: any, data: any) => {
-    setPosition({ x: data.x, y: data.y });
-  };
-
   return (
-    <div className="chatbot-container">
-      <Draggable
-        handle=".drag-handle"
-        defaultPosition={{ x: 0, y: 0 }}
-        position={position}
-        onStop={handleDragStop}
-        bounds="parent"
+    <div className="nuviora-chatbot">
+      {/* Chatbot toggle button with pulse animation */}
+      <button 
+        className="chatbot-toggle"
+        onClick={toggleChatbot}
+        aria-label="Toggle health assistant"
       >
-        <div className="fixed bottom-6 right-6 z-[9999]">
-        {/* Chat window */}
-          <Card className={`${isMinimized ? 'w-16 h-16' : 'w-80 sm:w-96'} shadow-2xl border border-neon overflow-hidden rounded-xl backdrop-blur-lg bg-black/70`}>
-            {isMinimized ? (
-              // Minimized view - just the thunder icon
-              <div 
-                className="h-full w-full flex items-center justify-center cursor-pointer drag-handle"
-                onClick={toggleMinimize}
-              >
-                <div className="bg-neon rounded-full p-3 flex items-center justify-center">
-                  <Zap size={24} className="text-black" />
-                </div>
+        {isOpen && isMinimized ? (
+          <ChevronUp size={20} />
+        ) : (
+          <>
+            <Zap size={22} />
+            <div className="chatbot-toggle-pulse"></div>
+          </>
+        )}
+      </button>
+      
+      {/* Chatbot window */}
+      {isOpen && (
+        <div 
+          ref={chatbotRef}
+          className={`chatbot-container ${isMinimized ? 'chatbot-minimized' : ''}`}
+          style={chatbotStyle}
+          onMouseDown={handleDragStart}
+          onClick={(e) => e.stopPropagation()} // Prevent clicks from propagating to document
+        >
+          <div className="chatbot-window">
+            {/* Header with drag handle */}
+            <div className="chatbot-header">
+              <div className="chatbot-title">
+                <Brain size={18} className="chatbot-title-icon" />
+                <span>NuviOra Health Assistant</span>
               </div>
-            ) : (
-              // Full view with header
-              <div className="bg-gradient-to-r from-black/90 to-gray-800/90 border-b border-neon p-3 flex justify-between items-center drag-handle cursor-move">
-                <div className="flex-1 flex justify-center items-center">
-                  <div className="bg-neon rounded-full p-2 flex items-center justify-center">
-                    <Zap size={20} className="text-black" />
-                  </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-full hover:bg-neon/20"
-                    onClick={toggleMinimize}
-                  >
-                    <Minimize2 size={16} className="text-neon" />
-                  </Button>
-                </div>
+              <div className="chatbot-controls">
+                <button 
+                  className="chatbot-control-button"
+                  onClick={clearChat}
+                  aria-label="Clear chat history"
+                  title="Clear chat history"
+                >
+                  <RotateCcw size={16} />
+                </button>
+                <button 
+                  className="chatbot-control-button"
+                  onClick={toggleMinimize}
+                  aria-label={isMinimized ? "Maximize" : "Minimize"}
+                  title={isMinimized ? "Maximize" : "Minimize"}
+                >
+                  {isMinimized ? <Maximize2 size={16} /> : <Minimize2 size={16} />}
+                </button>
+                <button 
+                  className="chatbot-control-button"
+                  onClick={() => setIsOpen(false)}
+                  aria-label="Close"
+                  title="Close"
+                >
+                  <X size={16} />
+                </button>
               </div>
-            )}
+            </div>
             
-            {/* Chat body - only shown when not minimized */}
-            {!isMinimized && (
-              <div className="max-h-[500px]">
-                <div className="h-96 overflow-y-auto p-4 bg-gradient-to-b from-black/70 to-gray-900/70 backdrop-blur-lg">
-                {messages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`mb-4 ${
-                      message.role === 'user'
-                        ? 'flex flex-col items-end'
-                        : 'flex flex-col items-start'
-                    }`}
-                  >
-                    <div
-                      className={`max-w-[80%] rounded-2xl p-3 shadow-lg ${
-                        message.role === 'user'
-                          ? 'bg-gradient-to-r from-neon to-neon/90 text-black'
-                          : message.role === 'system'
-                          ? 'bg-gradient-to-r from-gray-800 to-gray-700 text-white border border-gray-700'
-                          : 'bg-gradient-to-r from-gray-700 to-gray-600 text-white border border-gray-600'
-                      }`}
-                    >
-                      <p className="text-sm">{message.content}</p>
-                      <p className="text-xs mt-1 opacity-70 text-right">
-                        {formatTime(message.timestamp)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-                <div ref={messagesEndRef} />
-                
-                {/* Loading indicator */}
-                {isLoading && (
-                  <div className="flex items-center gap-2 text-neon-dim">
-                    <div className="loading-dots">
-                      <span></span>
-                      <span></span>
-                      <span></span>
-                    </div>
-                    <span className="text-xs">AI is thinking...</span>
-                  </div>
-                )}
-              </div>
+            {/* Messages container */}
+            <div className="chatbot-messages">
+              {messages.map((message, index) => (
+                <div 
+                  key={index} 
+                  className={`message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`}
+                >
+                  {message.content}
+                </div>
+              ))}
               
-              {/* Chat input */}
-              <div className="p-3 border-t border-neon/30 bg-gradient-to-r from-black/90 to-gray-800/90">
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="text"
-                    placeholder="Ask about your health..."
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    className="flex-1 bg-gray-800/60 border-neon/40 focus:border-neon rounded-xl placeholder:text-gray-400 text-white"
-                  />
-                  <Button
-                    onClick={handleSendMessage}
-                    disabled={isLoading || !input.trim()}
-                    className="bg-neon text-black hover:bg-neon/80 rounded-xl transition-all duration-200 shadow-lg hover:shadow-neon/30"
-                  >
-                    <Send size={16} />
-                  </Button>
-                </div>
-                </div>
-              </div>
-            )}
-          </Card>
+              {/* Typing indicator */}
+              {isTyping && (
+                typingText ? (
+                  <div className="message assistant-message">
+                    <div className="typing-text">{typingText}</div>
+                  </div>
+                ) : (
+                  <div className="typing-indicator">
+                    <div className="typing-dot"></div>
+                    <div className="typing-dot"></div>
+                    <div className="typing-dot"></div>
+                  </div>
+                )
+              )}
+              
+              {/* Invisible div for auto-scrolling */}
+              <div ref={messagesEndRef} />
+            </div>
+            
+            {/* Input area */}
+            <div className="chatbot-input">
+              <textarea
+                ref={inputRef}
+                className="chatbot-input-field"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyPress}
+                onInput={handleTextareaInput}
+                placeholder="Type your message..."
+                rows={1}
+                disabled={isTyping}
+              />
+              <button 
+                className="chatbot-send-button"
+                onClick={handleSendMessage}
+                disabled={!inputValue.trim() || isTyping}
+                aria-label="Send message"
+              >
+                <Send size={18} />
+              </button>
+            </div>
+          </div>
         </div>
-      </Draggable>
-        
-      <style>{`
-          .loading-dots {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-          }
-          
-          .loading-dots span {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background-color: #BEEA9E;
-            display: inline-block;
-            animation: bounce 1.4s infinite ease-in-out both;
-          }
-          
-          .loading-dots span:nth-child(1) {
-            animation-delay: -0.32s;
-          }
-          
-          .loading-dots span:nth-child(2) {
-            animation-delay: -0.16s;
-          }
-          
-          @keyframes bounce {
-            0%, 80%, 100% {
-              transform: scale(0);
-              opacity: 0.5;
-            }
-            40% {
-              transform: scale(1);
-              opacity: 1;
-            }
-          }
-        `}</style>
+      )}
     </div>
   );
 };
