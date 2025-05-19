@@ -494,11 +494,31 @@ const Home = () => {
                 whileHover={{ rotate: 5, scale: 1.1 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                <Zap size={32} />
+                <Brain size={32} />
               </motion.div>
               <h3 className="text-xl font-medium mb-2 text-white">AI Health Assistant</h3>
               <p className="opacity-80">
                 Get instant health insights and personalized recommendations with our AI-powered chatbot, trained specifically on health data from your NuviOra Watch X2.
+              </p>
+            </motion.div>
+            <motion.div 
+              className="feature-card"
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: 0.8 }}
+              whileHover={{ y: -5, transition: { duration: 0.2 } }}
+            >
+              <motion.div 
+                className="feature-icon"
+                whileHover={{ rotate: -5, scale: 1.1 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <Zap size={32} />
+              </motion.div>
+              <h3 className="text-xl font-medium mb-2 text-white">NuviOra Chatbot</h3>
+              <p className="opacity-80">
+                Chat with our intelligent NuviOra assistant developed by NuviOra Healthcare Tech. Get answers to health questions, wellness tips, and personalized guidance anytime, anywhere.
               </p>
             </motion.div>
             <motion.div 
