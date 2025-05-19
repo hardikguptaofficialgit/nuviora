@@ -74,7 +74,7 @@ const AppointmentBooking: React.FC<BookingProps> = ({ mood, visible }) => {
       specialty: "Sleep Medicine",
       address: "Delhi , India",
       distance: 1.2,
-      image: "https://i.pravatar.cc/150?img=28",
+      image: "https://res.cloudinary.com/ddx6avza4/image/upload/v1747631771/account_eqfmbh.png",
       availability: ['09:00 AM', '02:00 PM', '04:00 PM']
     },
     
@@ -84,7 +84,7 @@ const AppointmentBooking: React.FC<BookingProps> = ({ mood, visible }) => {
       specialty: "Endocrinology",
       address: "Rajasthan , India",
       distance: 2.4,
-      image: "https://i.pravatar.cc/150?img=69",
+      image: "https://res.cloudinary.com/ddx6avza4/image/upload/v1747631771/account_eqfmbh.png",
       availability: ['10:00 AM', '01:00 PM', '03:00 PM']
     }
   ] : mood === 'anxious' ? [
@@ -94,7 +94,7 @@ const AppointmentBooking: React.FC<BookingProps> = ({ mood, visible }) => {
       specialty: "Psychiatry",
       address: "789 Calm Boulevard",
       distance: 0.8,
-      image: "https://i.pravatar.cc/150?img=32",
+      image: "https://res.cloudinary.com/ddx6avza4/image/upload/v1747631771/account_eqfmbh.png",
       availability: ['09:00 AM', '11:00 AM', '02:00 PM']
     },
     {
@@ -103,7 +103,7 @@ const AppointmentBooking: React.FC<BookingProps> = ({ mood, visible }) => {
       specialty: "Psychiatry",
       address: "Punjab , India",
       distance: 1.7,
-      image: "https://i.pravatar.cc/150?img=59",
+      image: "https://res.cloudinary.com/ddx6avza4/image/upload/v1747631771/account_eqfmbh.png",
       availability: ['10:00 AM', '01:00 PM', '04:00 PM']
     }
   ] : [
@@ -113,7 +113,7 @@ const AppointmentBooking: React.FC<BookingProps> = ({ mood, visible }) => {
       specialty: "General Practitioner",
       address: "Delhi , India",
       distance: 1.0,
-      image: "https://i.pravatar.cc/150?img=47",
+      image: "https://res.cloudinary.com/ddx6avza4/image/upload/v1747631771/account_eqfmbh.png",
       availability: ['09:00 AM', '01:00 PM', '03:00 PM']
     },
     {
@@ -122,7 +122,7 @@ const AppointmentBooking: React.FC<BookingProps> = ({ mood, visible }) => {
       specialty: "Internal Medicine",
       address: "Chandigarh , India",
       distance: 1.5,
-      image: "https://i.pravatar.cc/150?img=55",
+      image: "https://res.cloudinary.com/ddx6avza4/image/upload/v1747631771/account_eqfmbh.png",
       availability: ['10:00 AM', '11:00 AM', '02:00 PM']
     }
   ];
@@ -181,7 +181,7 @@ const AppointmentBooking: React.FC<BookingProps> = ({ mood, visible }) => {
   
   return (
     <div className="animate-fade-in pt-4">
-      <h3 className="text-xs uppercase tracking-wider text-neon-dim mb-2">
+      <h3 className="text-xs uppercase tracking-wider text-white mb-2">
         Book Appointment: {moodTitle}
       </h3>
       
@@ -366,19 +366,19 @@ const AppointmentBooking: React.FC<BookingProps> = ({ mood, visible }) => {
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <div className="flex items-center">
-                      <Calendar size={16} className="mr-2 text-neon-dim" />
+                      <Calendar size={16} className="mr-2 text-white" />
                       <span>{formatDate(selectedDate)}</span>
                     </div>
                     <div className="flex items-center">
-                      <Clock size={16} className="mr-2 text-neon-dim" />
+                      <Clock size={16} className="mr-2 text-white" />
                       <span>{selectedTime}</span>
                     </div>
                     <div className="flex items-center sm:col-span-2">
-                      <MapPin size={16} className="mr-2 text-neon-dim" />
+                      <MapPin size={16} className="mr-2 text-white" />
                       <span>{selectedDoctor.address}</span>
                     </div>
                     <div className="flex items-center sm:col-span-2 mt-2">
-                      <span className="mr-2 text-neon-dim">Consultation Fee:</span>
+                      <span className="mr-2 text-white">Consultation Fee:</span>
                       <span className="text-neon">₹{(selectedDoctor.id * 500).toFixed(2)}</span>
                     </div>
                   </div>

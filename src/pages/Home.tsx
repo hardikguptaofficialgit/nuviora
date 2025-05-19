@@ -7,12 +7,14 @@ import PageLoadingAnimation from '@/components/PageLoadingAnimation';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
+import DeviceConnectionPopup from '@/components/DeviceConnectionPopup';
 
 const Home = () => {
   const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showDevicePopup, setShowDevicePopup] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   
   // Redirect authenticated users to dashboard
@@ -21,6 +23,22 @@ const Home = () => {
       navigate('/dashboard');
     }
   }, [isAuthenticated, navigate]);
+  
+  // Show device connection popup after page loads
+  useEffect(() => {
+    // Check if a device is already connected
+    const connectedWatch = localStorage.getItem('connectedWatch');
+    
+    // Only show popup if no device is connected
+    if (!connectedWatch) {
+      // Show popup after a short delay
+      const timer = setTimeout(() => {
+        setShowDevicePopup(true);
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, []);
   
   // Removed particle animation effect for better performance
   
@@ -31,6 +49,12 @@ const Home = () => {
       {/* background elements */}
       <div className="matrix-bg" />
       <div className="scan-line z-10 pointer-events-none" />
+      
+      {/* Device connection popup */}
+      <DeviceConnectionPopup 
+        isOpen={showDevicePopup} 
+        onClose={() => setShowDevicePopup(false)} 
+      />
       
       {/* custom cursor */}
       <CustomCursor />

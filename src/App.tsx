@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import SmoothScroll from "./components/SmoothScroll";
 import { AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import ChatBot from "./components/ChatBot";
 
 import { AuthProvider } from "./contexts/AuthContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
@@ -49,21 +50,26 @@ const App = () => {
                 <SmoothScroll>
                   <AnimatePresence mode="wait">
                     {appLoaded && (
-                      <Routes>
-                        {/* public routes */}
-                        <Route path="/" element={<Home />} />
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/signup" element={<Signup />} />
-                        <Route path="/pricing" element={<Pricing />} />
+                      <>
+                        <Routes>
+                          {/* public routes */}
+                          <Route path="/" element={<Home />} />
+                          <Route path="/login" element={<Login />} />
+                          <Route path="/signup" element={<Signup />} />
+                          <Route path="/pricing" element={<Pricing />} />
+                          
+                          {/* protected routes */}
+                          <Route element={<ProtectedRoute />}>
+                            <Route path="/dashboard" element={<Dashboard />} />
+                          </Route>
+                          
+                          {/* catch-all route */}
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
                         
-                        {/* protected routes */}
-                        <Route element={<ProtectedRoute />}>
-                          <Route path="/dashboard" element={<Dashboard />} />
-                        </Route>
-                        
-                        {/* catch-all route */}
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
+                        {/* Global ChatBot component */}
+                        <ChatBot />
+                      </>
                     )}
                   </AnimatePresence>
                 </SmoothScroll>

@@ -1,10 +1,10 @@
 import ModelClient, { isUnexpected } from "@azure-rest/ai-inference";
 import { AzureKeyCredential } from "@azure/core-auth";
 
-// GitHub token and endpoint configuration
-const token = "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";
+// Configuration - consider moving these to env vars in production
+const token = "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"; // ⚠️ WARNING: Use environment variables in real apps
 const endpoint = "https://models.github.ai/inference";
-const model = "openai/gpt-4o"; // Using the DeepSeek-V3-0324 model as specified in memories
+const modelName = "microsoft/Phi-4-mini-instruct";
 
 // Interface for chat message
 export interface ChatMessage {
@@ -23,7 +23,9 @@ interface ApiOptions {
 
 // Service for interacting with GitHub AI models
 export const githubModelService = {
-  // Method to get chat completion from GitHub model with enhanced error handling and retry logic
+  /** 
+   * Get a chat completion from the GitHub-hosted AI model.
+   */
   getChatCompletion: async (
     messages: ChatMessage[], 
     systemPrompt: string = "", 
@@ -33,33 +35,25 @@ export const githubModelService = {
     let retries = 0;
     let lastError: any = null;
     
-    // Default API options with sensible values
+    // Default API options
     const defaultOptions: ApiOptions = {
       temperature: 0.7,
-      top_p: 0.1,
-      max_tokens: 2048,
-      presence_penalty: 0.1,
-      frequency_penalty: 0.1
+      top_p: 1.0,
+      max_tokens: 1000,
+      presence_penalty: 0,
+      frequency_penalty: 0,
     };
     
-    // Merge default options with provided options
     const apiOptions = { ...defaultOptions, ...options };
     
-    // Retry logic for API calls
     while (retries <= maxRetries) {
       try {
-        // Create model client with GitHub token
-        const client = ModelClient(
-          endpoint,
-          new AzureKeyCredential(token)
-        );
-
-        // Add system prompt if provided
+        const client = ModelClient(endpoint, new AzureKeyCredential(token));
+        
         const allMessages = systemPrompt 
           ? [{ role: "system" as const, content: systemPrompt }, ...messages]
-          : messages;
-
-        // Make API request to GitHub model
+          : [...messages];
+        
         const response = await client.path("/chat/completions").post({
           body: {
             messages: allMessages,
@@ -68,64 +62,56 @@ export const githubModelService = {
             max_tokens: apiOptions.max_tokens,
             presence_penalty: apiOptions.presence_penalty,
             frequency_penalty: apiOptions.frequency_penalty,
-            model: model
-          }
+            model: modelName,
+          },
         });
-
-        // Handle unexpected responses
+        
         if (isUnexpected(response)) {
           throw new Error(response.body.error?.message || "Unexpected API response");
         }
-
-        // Process and return the model's response
-        const content = response.body.choices[0].message.content;
-        return content.trim();
+        
+        return response.body.choices[0].message.content.trim();
       } catch (error: any) {
         lastError = error;
-        console.error(`Error getting chat completion (attempt ${retries + 1}/${maxRetries + 1}):`, error);
+        console.error(`Error getting chat completion (attempt ${retries + 1}/${maxRetries + 1}):`, error.message);
         
-        // If it's a rate limit or temporary server error, retry after a delay
         const isRetryableError = 
           error?.message?.includes("rate limit") || 
           error?.message?.includes("timeout") || 
+          error?.status >= 500 || 
           error?.message?.includes("503") || 
           error?.message?.includes("502");
           
         if (isRetryableError && retries < maxRetries) {
-          // Exponential backoff with jitter
           const delay = Math.floor(1000 * Math.pow(2, retries) * (0.8 + Math.random() * 0.4));
           console.log(`Retrying after ${delay}ms...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
           retries++;
           continue;
         }
         
-        // If we've exhausted retries or it's not a retryable error, break out of the loop
         break;
       }
     }
     
-    // If we get here, all retries failed
-    console.error("All API call attempts failed:", lastError);
-    return "Sorry, I encountered a technical issue. Please try again in a moment.";
+    console.error("All attempts failed:", lastError);
+    return "Sorry, I encountered a technical issue. Please try again later.";
   },
   
-  // Method to check API connection health
+  /** 
+   * Check if the GitHub AI inference service is responsive.
+   */
   checkHealth: async (): Promise<boolean> => {
     try {
-      const client = ModelClient(
-        endpoint,
-        new AzureKeyCredential(token)
-      );
+      const client = ModelClient(endpoint, new AzureKeyCredential(token));
       
-      // Simple test query to check if the API is responsive
       const response = await client.path("/chat/completions").post({
         body: {
           messages: [{ role: "user", content: "Hello" }],
           temperature: 0.1,
           max_tokens: 10,
-          model: model
-        }
+          model: modelName,
+        },
       });
       
       return !isUnexpected(response);
@@ -133,5 +119,5 @@ export const githubModelService = {
       console.error("Health check failed:", error);
       return false;
     }
-  }
+  },
 };

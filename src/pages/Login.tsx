@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +16,11 @@ const Login = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { notify } = useNotificationContext();
+  
+  // Check if we're coming from the device connection popup
+  const redirectToDashboard = location.state?.redirectToDashboard;
   
   // redirect authenticated users to dashboard
   useEffect(() => {
@@ -24,6 +28,17 @@ const Login = () => {
       navigate('/dashboard');
     }
   }, [isAuthenticated, navigate]);
+  
+  // Show notification if coming from device connection
+  useEffect(() => {
+    if (redirectToDashboard) {
+      notify.info(
+        "Device Connected", 
+        "Please log in to manage your connected device on the dashboard.",
+        5000
+      );
+    }
+  }, [redirectToDashboard, notify]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +56,17 @@ const Login = () => {
       if (success) {
         notify.success("Success", "You have been logged in successfully");
         navigate('/dashboard');
+        
+        // If device was connected, show additional notification
+        if (redirectToDashboard) {
+          setTimeout(() => {
+            notify.success(
+              "Ready to Manage", 
+              "Your connected device is now ready to be managed on the dashboard.",
+              5000
+            );
+          }, 1000);
+        }
       } else {
         notify.error("Error", "Invalid email or password");
       }

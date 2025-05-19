@@ -107,7 +107,7 @@ const MoodIndicator: React.FC<MoodIndicatorProps> = ({
       <Card 
         className={`biometric-card p-6 ${showGlitch ? 'glitch' : ''}`}
       >
-        <h3 className="text-xs uppercase tracking-wider text-neon-dim mb-2">NuviOra™ Mood Analysis</h3>
+        <h3 className="text-xs uppercase tracking-wider text-white mb-2">NuviOra™ Mood Analysis</h3>
         
         {isAnalyzing ? (
           <div className="space-y-3">

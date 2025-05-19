@@ -17,7 +17,7 @@ import HealthcareRecommendations from '@/components/HealthcareRecommendations';
 import WatchStatus from '@/components/WatchStatus';
 import WatchConnection from '@/components/WatchConnection';
 import SleepQualityAnalysis from '@/components/SleepQualityAnalysis';
-import ChatBot from '@/components/ChatBot';
+
 
 import DietGenerator from '@/components/DietGenerator';
 
@@ -227,8 +227,6 @@ const Dashboard = () => {
       {/* custom cursor */}
       <CustomCursor />
       
-      {/* Floating ChatBot */}
-      <ChatBot />
       
       {/* app header */}
       <header className="sticky top-0 bg-black/80 backdrop-blur-md border-b border-neon-dim z-50 py-2 px-4 mb-4">
