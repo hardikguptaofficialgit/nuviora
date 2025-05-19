@@ -2,7 +2,7 @@ import ModelClient, { isUnexpected } from "@azure-rest/ai-inference";
 import { AzureKeyCredential } from "@azure/core-auth";
 
 
-const token = "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"; // 
+const token = "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"; // 
 const endpoint = "https://models.github.ai/inference";
 const modelName = "microsoft/Phi-4-mini-instruct";
 
